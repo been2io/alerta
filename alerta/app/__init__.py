@@ -61,7 +61,10 @@ if 'SMTP_PASSWORD' in os.environ:
 
 if 'PLUGINS' in os.environ:
     app.config['PLUGINS'] = os.environ['PLUGINS'].split(',')
-
+if 'MONGO_HOST' in os.environ:
+    app.config['MONGO_HOST'] = os.environ["MONGO_HOST"]
+if 'MONGO_PORT' in os.environ:
+    app.config['MONGO_PORT'] = os.environ['MONGO_PORT']
 if app.debug:
     app.debug_log_format = LOG_FORMAT
     app.logger.setLevel(logging.DEBUG)
