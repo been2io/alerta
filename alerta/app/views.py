@@ -186,6 +186,7 @@ def receive_alert():
     recv_started = receive_timer.start_timer()
     try:
         incomingAlert = Alert.parse_alert(request.data)
+        incomingAlert.raw_data = str(incomingAlert.raw_data)
     except ValueError as e:
         receive_timer.stop_timer(recv_started)
         return jsonify(status="error", message=str(e)), 400
