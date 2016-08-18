@@ -73,6 +73,8 @@ if 'MONGO_HOST' in os.environ:
     app.config['MONGO_HOST'] = os.environ["MONGO_HOST"]
 if 'MONGO_PORT' in os.environ:
     app.config['MONGO_PORT'] = os.environ['MONGO_PORT']
+if 'UI_PATH' in os.environ:
+    app.config['UI_PATH'] = os.environ['UI_PATH']
 if app.debug:
     for logger in loggers:
         logger.setLevel(logging.DEBUG)

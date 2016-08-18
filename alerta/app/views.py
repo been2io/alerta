@@ -1,6 +1,7 @@
 import datetime
 
-from flask import g, request, render_template, jsonify
+
+from flask import g, request, render_template, jsonify,send_from_directory
 from flask_cors import cross_origin
 from uuid import uuid4
 
@@ -26,7 +27,7 @@ tag_timer = Timer('alerts', 'tagged', 'Tagging alerts', 'Total time to tag numbe
 attrs_timer = Timer('alerts', 'attributes', 'Alert attributes change', 'Total time and number of alerts with attributes changed')
 untag_timer = Timer('alerts', 'untagged', 'Removing tags from alerts', 'Total time to un-tag number of alerts')
 
-
+ui_path=app.config.get("UI_PATH")
 @app.route('/_', methods=['OPTIONS', 'PUT', 'POST', 'DELETE', 'GET'])
 @cross_origin()
 @jsonp
@@ -42,6 +43,7 @@ def test():
     )
 
 
+
 @app.route('/')
 def index():
 
@@ -51,6 +53,11 @@ def index():
             rules.append(rule)
     return render_template('index.html', base_url=absolute_url(), rules=rules)
 
+@app.route('/ui/<path:path>')
+def send_js(path):
+    if not ui_path:
+        return jsonify(status="error",message="undefined ui path"),500
+    return send_from_directory(ui_path, path)
 
 @app.route('/alerts', methods=['OPTIONS', 'GET'])
 @cross_origin()
