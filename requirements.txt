@@ -1,4 +1,6 @@
-gunicorn
-cffi
-alerta-slack
--e .
+Flask
+flask_cors
+bcrypt
+PyJWT
+python-dateutil
+

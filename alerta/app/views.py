@@ -1,6 +1,6 @@
 import datetime
 
-from flask import g, request, render_template,send_from_directory
+from flask import g, request, render_template,send_from_directory,redirect
 from flask_cors import cross_origin
 from uuid import uuid4
 
@@ -43,7 +43,7 @@ def test():
 
 
 
-@app.route('/')
+@app.route('/alerta')
 def index():
 
     rules = []
@@ -51,7 +51,9 @@ def index():
         if rule.endpoint not in ['test', 'static']:
             rules.append(rule)
     return render_template('index.html', base_url=absolute_url(), rules=rules)
-
+@app.route("/")
+def root():
+    return redirect(request.base_url+"ui/index.html")
 @app.route('/ui/<path:path>')
 def send_js(path):
     if not ui_path:
