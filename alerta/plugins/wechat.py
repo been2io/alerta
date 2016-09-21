@@ -29,7 +29,7 @@ import os
 import re
 import requests
 import sys
-from alerta.app import severity_code
+from alerta.app import severity_code,app
 from time import time
 from alerta.plugins import PluginBase, RejectException
 import logging
@@ -41,8 +41,8 @@ from expiringdict import ExpiringDict
 #}  # MusicallyMonitor
 
 SECRET = {
-     'corpid': 'wx54a9417a974934c3',
-     'corpsecret': 'I78G46sZyFc3EyKtTe3GhPThTbztnu8H9vi69jAMRhyOW5BGifEpD-WqheLg4LfN',
+    'corpid': 'wx54a9417a974934c3',
+    'corpsecret': 'I78G46sZyFc3EyKtTe3GhPThTbztnu8H9vi69jAMRhyOW5BGifEpD-WqheLg4LfN',
 }  # 备用 MusicallyMonitor2
 
 # SECRET = {
@@ -119,10 +119,19 @@ USERS = {
 LOG = logging.getLogger('alerta.plugins.wechat')
 LOG.addHandler(logging.StreamHandler())
 LOG.setLevel(logging.INFO)
+corp_id=app.config.get("WECHAT_ID")
+corp_secret=app.config.get("WECHAT_SECRET")
+if corp_id and corp_secret:
+    LOG.info("set up webchat")
+    SECRET['corpid']=corp_id
+    SECRET['corpsecret']=corp_secret
+
 class WeChat(PluginBase):
     def __init__(self):
+        blackout_time = app.config['WECHAT_BLACKOUT_SECOND']
+        LOG.info("wechat blackout second {}".format(blackout_time))
         self.sender= WeixinMsgSender()
-        self.alert_history=ExpiringDict(max_len=100000, max_age_seconds=10*60)
+        self.alert_history=ExpiringDict(max_len=100000, max_age_seconds=blackout_time)
     def pre_receive(self, alert):
         """Pre-process an alert based on alert properties or reject it by raising RejectException."""
         return alert
@@ -130,7 +139,8 @@ class WeChat(PluginBase):
     def post_receive(self, alert):
         """Send an alert to another service or notify users."""
         LOG.info('######################################################################')
-        LOG.info(alert)
+        LOG.info("id:{}".format(alert.id))
+        LOG.info("text:{}".format(alert.text))
         if not self.alert_history.get(alert.id):
             if alert.severity == severity_code.CRITICAL:
                 self.sender.send_msg_retry_once("1",'yan.yin',alert.text)
