@@ -27,7 +27,8 @@ setuptools.setup(
         'python-dateutil',
         'pytz',
         'PyJWT',
-        'bcrypt'
+        'bcrypt',
+        'expiringdict'
     ],
     include_package_data=True,
     zip_safe=False,
@@ -36,7 +37,8 @@ setuptools.setup(
             'alertad = alerta.app.shell:main'
         ],
         'alerta.plugins': [
-            'reject = alerta.plugins.reject:RejectPolicy'
+            'reject = alerta.plugins.reject:RejectPolicy',
+            'wechat = alerta.plugins.wechat:WeChat'
         ]
     },
     keywords='alert monitoring system wsgi application api',

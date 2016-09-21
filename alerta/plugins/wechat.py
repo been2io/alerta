@@ -29,9 +29,12 @@ import os
 import re
 import requests
 import sys
-from termcolor import colored
+from alerta.app import severity_code
 from time import time
-
+from alerta.plugins import PluginBase, RejectException
+import logging
+from os.path import expanduser
+from expiringdict import ExpiringDict
 #SECRET = {
 #    'corpid': 'wxa4e276dc9c2e1f23',
 #    'corpsecret': '2BuJ_FjH_CGAgTH694AGQmEr_Y4Ir7TT9nKHVQ-ifoDMDkUHaKNM-3-fW3agDg4v',
@@ -113,8 +116,34 @@ USERS = {
     'francis.yuan': {},
 
 }
+LOG = logging.getLogger('alerta.plugins.wechat')
+LOG.addHandler(logging.StreamHandler())
+LOG.setLevel(logging.INFO)
+class WeChat(PluginBase):
+    def __init__(self):
+        self.sender= WeixinMsgSender()
+        self.alert_history=ExpiringDict(max_len=100000, max_age_seconds=10*60)
+    def pre_receive(self, alert):
+        """Pre-process an alert based on alert properties or reject it by raising RejectException."""
+        return alert
 
+    def post_receive(self, alert):
+        """Send an alert to another service or notify users."""
+        LOG.info('######################################################################')
+        LOG.info(alert)
+        if not self.alert_history.get(alert.id):
+            if alert.severity == severity_code.CRITICAL:
+                self.sender.send_msg_retry_once("1",'yan.yin',alert.text)
+                self.alert_history[alert.id] = True
+            else:
+                LOG.info("ignore none critical alerts")
+        else:
+            LOG.info("ignore same alerts within {} second,age is {}".format(self.alert_history.max_age,self.alert_history.get(alert.id,default=None,with_age=True)))
+        return
 
+    def status_change(self, alert, status, text):
+        """Trigger integrations based on status changes."""
+        return
 def msg_to_receiver(message):
     message = re.sub(r'\n+', '\n', message)
 
@@ -154,10 +183,12 @@ def msg_to_receiver(message):
 
 class WeixinMsgSender(object):
     def __init__(self):
+        home = expanduser("~")
         self.base_url = 'https://qyapi.weixin.qq.com/cgi-bin/'
         self.token = ''
-        self.cache_path = '/usr/lib/zabbix/alertscripts/zabbix_weixin.cache'
+        self.cache_path = '{}/.zabbix_weixin.cache'.format(home)
         self.cache_age = 7200
+        self.load_cache()
 
     def load_cache(self):
         if os.path.isfile(self.cache_path):
@@ -169,10 +200,14 @@ class WeixinMsgSender(object):
                     self.token = cache.read()
                 except Exception:
                     pass
+            else:
+                self.rotate_token(**SECRET)
+        else:
+            self.rotate_token(**SECRET)
 
     def rotate_token(self, corpid, corpsecret):
         get_token_url = self.base_url + 'gettoken?corpid={:s}&corpsecret={:s}'.format(corpid, corpsecret)
-        print colored('Getting token from weixin api', 'blue')
+        print 'Getting token from weixin api'
         resp = requests.get(get_token_url).json()
         print json.dumps(resp, indent=2)
         token = resp['access_token']
@@ -191,35 +226,23 @@ class WeixinMsgSender(object):
                 "content": message,
             }
         }
-        print colored('Sending message with token: {}'.format(self.token), 'blue')
+        print 'Sending message with token: {}'.format(self.token)
         resp = requests.post(send_msg_url, data=json.dumps(content, ensure_ascii=False)).json()
         print json.dumps(resp, indent=2)
         return int(resp["errcode"])
 
-
-def main():
-    if len(sys.argv) == 4:
-        msg = sys.argv[3]
-
-        appid, to_user = msg_to_receiver(msg)
-
-        wx = WeixinMsgSender()
-        wx.load_cache()
-        errcode = wx.send_msg(appid, to_user, msg)
+    def send_msg_retry_once(self,app_id,to_user,message):
+        errcode=self.send_msg(app_id,to_user,message)
         if errcode == 0:
-            print colored('Success', 'green')
+            LOG.info("send msg success {}".format(str(message)))
         else:
             if errcode in (41001, 40014, 42001):
-                wx.rotate_token(**SECRET)
-                errcode = wx.send_msg(appid, to_user, msg)
+                self.rotate_token(**SECRET)
+                errcode = self.send_msg(app_id, to_user, message)
                 if errcode == 0:
-                    print colored('Success with second try', 'green')
+                    LOG.info("send msg success {}".format(str(message)))
                 else:
-                    print colored('Failure with second try, error code: {}'.format(errcode), 'red')
+                    LOG.info("send msg failed {}".format(str(message)))
             else:
-                print colored('Failure, error code: {}'.format(errcode), 'red')
-
-    else:
-        print colored('Wrong arguments.', 'red')
-
-main()
+                print 'Failure, error code: {}'.format(errcode)
+                LOG.info("send msg failed {:s}".format(message))
