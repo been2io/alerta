@@ -29,7 +29,7 @@ import os
 import re
 import requests
 import sys
-from alerta.app import severity_code,app
+from alerta.app import severity_code,app,status_code
 from time import time
 from alerta.plugins import PluginBase, RejectException
 import logging
@@ -141,14 +141,18 @@ class WeChat(PluginBase):
         LOG.info('######################################################################')
         LOG.info("id:{}".format(alert.id))
         LOG.info("text:{}".format(alert.text))
-        if not self.alert_history.get(alert.id):
-            if alert.severity == severity_code.CRITICAL:
-                self.sender.send_msg_retry_once("1",'yan.yin',alert.text)
-                self.alert_history[alert.id] = True
+        LOG.info("status:{}".format(alert.status))
+        if alert.status == status_code.OPEN :
+            if not self.alert_history.get(alert.id):
+                if alert.severity == severity_code.CRITICAL:
+                    self.sender.send_msg_retry_once("1",'yan.yin',alert.text)
+                    self.alert_history[alert.id] = True
+                else:
+                    LOG.info("ignore none critical alerts")
             else:
-                LOG.info("ignore none critical alerts")
+                LOG.info("ignore same alerts within {} second,age is {}".format(self.alert_history.max_age,self.alert_history.get(alert.id,default=None,with_age=True)))
         else:
-            LOG.info("ignore same alerts within {} second,age is {}".format(self.alert_history.max_age,self.alert_history.get(alert.id,default=None,with_age=True)))
+            LOG.info("ignore not open alerts")
         return
 
     def status_change(self, alert, status, text):
