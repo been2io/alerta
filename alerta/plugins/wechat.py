@@ -35,6 +35,7 @@ from alerta.plugins import PluginBase, RejectException
 import logging
 from os.path import expanduser
 from expiringdict import ExpiringDict
+from dateutil import tz
 #SECRET = {
 #    'corpid': 'wxa4e276dc9c2e1f23',
 #    'corpsecret': '2BuJ_FjH_CGAgTH694AGQmEr_Y4Ir7TT9nKHVQ-ifoDMDkUHaKNM-3-fW3agDg4v',
@@ -145,7 +146,16 @@ class WeChat(PluginBase):
         if alert.status == status_code.OPEN :
             if not self.alert_history.get(alert.id):
                 if alert.severity == severity_code.CRITICAL:
-                    self.sender.send_msg_retry_once("1",'yan.yin',alert.text)
+                    if alert.text:
+                        text="{}".format(alert.text)
+                    else:
+                        text="{}:{}".format(alert.service,alert.resource)
+                        if alert.value:
+                            text="{} is {}".format(text,alert.value)
+                    if alert.last_receive_time:
+                        text="{} at {}".format(text,alert.receive_time.replace(tzinfo=tz.tzutc()).astimezone( tz.gettz('Asia/Shanghai')))
+                    LOG.info("message:{}".format(text))
+                    self.sender.send_msg_retry_once("1",'yan.yin',text)
                     self.alert_history[alert.id] = True
                 else:
                     LOG.info("ignore none critical alerts")
