@@ -75,9 +75,10 @@ if 'MONGO_PORT' in os.environ:
     app.config['MONGO_PORT'] = os.environ['MONGO_PORT']
 if 'UI_PATH' in os.environ:
     app.config['UI_PATH'] = os.environ['UI_PATH']
-app.config['WECHAT_BLACKOUT_SECOND'] = 10*60
 if  'WECHAT_BLACKOUT_SECOND' in os.environ:
-    app.config['WECHAT_BLACKOUT_SECOND'] = os.environ['WECHAT_BLACKOUT_SECOND']
+    app.config['WECHAT_BLACKOUT_SECOND'] = float(os.environ['WECHAT_BLACKOUT_SECOND'])
+if not app.config.get('WECHAT_BLACKOUT_SECOND'):
+    app.config['WECHAT_BLACKOUT_SECOND'] = float(60 * 60)
 if  'WECHAT_ID' in os.environ:
     app.config['WECHAT_ID']=os.environ["WECHAT_ID"]
 if 'WECHAT_SECRET' in os.environ:
