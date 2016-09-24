@@ -146,7 +146,7 @@ class WeChat(PluginBase):
         if alert.status == status_code.OPEN :
             if not self.alert_history.get(alert.id):
                 if alert.severity == severity_code.CRITICAL:
-                    text="{}!{}:{}".format(alert.severity,alert.service,alert.resource)
+                    text="{}!{}:{} {}".format(alert.severity,",".join(alert.service),alert.resource,alert.event)
                     if alert.value:
                         text="{} is {}".format(text,alert.value)
                     if alert.last_receive_time:
