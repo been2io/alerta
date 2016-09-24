@@ -146,14 +146,11 @@ class WeChat(PluginBase):
         if alert.status == status_code.OPEN :
             if not self.alert_history.get(alert.id):
                 if alert.severity == severity_code.CRITICAL:
-                    if alert.text:
-                        text="{}".format(alert.text)
-                    else:
-                        text="{}:{}".format(alert.service,alert.resource)
-                        if alert.value:
-                            text="{} is {}".format(text,alert.value)
+                    text="{}!{}:{}".format(alert.severity,alert.service,alert.resource)
+                    if alert.value:
+                        text="{} is {}".format(text,alert.value)
                     if alert.last_receive_time:
-                        text="{} at {}".format(text,alert.receive_time.replace(tzinfo=tz.tzutc()).astimezone( tz.gettz('Asia/Shanghai')))
+                        text="{} at {}".format(text,alert.receive_time.replace(tzinfo=tz.tzutc()).astimezone( tz.gettz('Asia/Shanghai')).strftime("%Y/%m/%d %H:%M"))
                     LOG.info("message:{}".format(text))
                     self.sender.send_msg_retry_once("1",'yan.yin',text)
                     self.alert_history[alert.id] = True
