@@ -154,7 +154,7 @@ class WeChat(PluginBase):
                             value = "{0:0.0f}".format(value)
                         text="{} is {}".format(text,value)
                     if alert.last_receive_time:
-                        text="{} at {}".format(text,alert.receive_time.replace(tzinfo=tz.tzutc()).astimezone( tz.gettz('Asia/Shanghai')).strftime("%Y/%m/%d %H:%M"))
+                        text="{} at {}".format(text,alert.last_receive_time.replace(tzinfo=tz.tzutc()).astimezone( tz.gettz('Asia/Shanghai')).strftime("%Y/%m/%d %H:%M"))
                     LOG.info("message:{}".format(text))
                     self.sender.send_msg_retry_once("1",'yan.yin',text)
                     self.alert_history[alert.id] = True
