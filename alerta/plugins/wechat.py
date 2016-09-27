@@ -119,8 +119,6 @@ USERS = {
 
 }
 LOG = logging.getLogger('alerta.plugins.wechat')
-LOG.addHandler(logging.StreamHandler())
-LOG.setLevel(logging.INFO)
 corp_id=app.config.get("WECHAT_ID")
 corp_secret=app.config.get("WECHAT_SECRET")
 if corp_id and corp_secret:

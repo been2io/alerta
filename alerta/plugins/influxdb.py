@@ -5,7 +5,6 @@ import logging
 from alerta.app import app
 from alerta.plugins import PluginBase
 LOG = logging.getLogger('alerta.plugins.influxdb')
-LOG.addHandler(logging.StreamHandler())
 LOG.setLevel(logging.DEBUG)
 INFLUXDB_URL = os.environ.get('INFLUXDB_URL') or app.config.get('INFLUXDB_URL')
 INFLUXDB_USER = os.environ.get('INFLUXDB_USER') or app.config.get('INFLUXDB_USER')
@@ -13,7 +12,9 @@ INFLUXDB_PASSWORD = os.environ.get('INFLUXDB_PASSWORD') or app.config.get('INFLU
 
 
 class InfluxDBWrite(PluginBase):
-
+    def __init__(self):
+        LOG.info("influxdb")
+        LOG.info("host:{}".format(INFLUXDB_URL))
     def pre_receive(self, alert):
         return alert
 
@@ -24,7 +25,7 @@ class InfluxDBWrite(PluginBase):
         try:
             response = requests.post(url=url, data=data)
         except Exception as e:
-            raise RuntimeError("InfluxDB connection error: %s", e)
+            LOG.error("InfluxDB connection error: %s", e)
 
         LOG.debug('InfluxDB response: %s', response)
 
