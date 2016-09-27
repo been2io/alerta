@@ -76,7 +76,7 @@ MAIL_FROM = 'your@gmail.com'  # replace with valid sender address
 SMTP_PASSWORD = ''  # password for MAIL_FROM account, Gmail uses application-specific passwords
 
 # Plug-ins
-PLUGINS = ['reject','wechat']
+PLUGINS = ['reject','wechat','influxdb']
 
 ORIGIN_BLACKLIST = []  # reject all foo alerts from bar, and everything from qux
 #ORIGIN_BLACKLIST = ['foo/bar$', '.*/qux']  # reject all foo alerts from bar, and everything from qux

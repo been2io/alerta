@@ -38,7 +38,8 @@ setuptools.setup(
         ],
         'alerta.plugins': [
             'reject = alerta.plugins.reject:RejectPolicy',
-            'wechat = alerta.plugins.wechat:WeChat'
+            'wechat = alerta.plugins.wechat:WeChat',
+            'influxdb = alerta.plugins.influxdb:InfluxDBWrite'
         ]
     },
     keywords='alert monitoring system wsgi application api',
