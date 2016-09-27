@@ -47,7 +47,7 @@ class Plugins(object):
     def register(self):
         plugins_enabled = []
         for ep in iter_entry_points('alerta.plugins'):
-            LOG.debug("Server plug-in '%s' found.", ep.name)
+            LOG.info("Server plug-in '%s' found.", ep.name)
             try:
                 if ep.name in app.config['PLUGINS']:
                     plugin = ep.load()
@@ -56,7 +56,7 @@ class Plugins(object):
                         plugins_enabled.append(ep.name)
                         LOG.info("Server plug-in '%s' enabled.", ep.name)
                 else:
-                    LOG.debug("Server plug-in '%s' not enabled in 'PLUGINS'.", ep.name)
+                    LOG.info("Server plug-in '%s' not enabled in 'PLUGINS'.", ep.name)
             except Exception as e:
                 LOG.error("Server plug-in '%s' could not be loaded: %s", ep.name, e)
         LOG.info("All server plug-ins enabled: %s" % ', '.join(plugins_enabled))

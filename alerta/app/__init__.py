@@ -83,10 +83,12 @@ if  'WECHAT_ID' in os.environ:
     app.config['WECHAT_ID']=os.environ["WECHAT_ID"]
 if 'WECHAT_SECRET' in os.environ:
     app.config['WECHAT_SECRET']=os.environ['WECHAT_SECRET']
+
+logging.getLogger().addHandler(logging.StreamHandler())
+logging.getLogger().setLevel(logging.INFO)
 if app.debug:
     for logger in loggers:
         logger.setLevel(logging.DEBUG)
-
 if app.config['LOG_FILE']:
     from logging.handlers import RotatingFileHandler
     del app.logger.handlers[:]

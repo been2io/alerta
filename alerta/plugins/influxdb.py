@@ -4,7 +4,6 @@ import requests
 import logging
 from alerta.app import app
 from alerta.plugins import PluginBase
-
 LOG = logging.getLogger('alerta.plugins.influxdb')
 LOG.addHandler(logging.StreamHandler())
 LOG.setLevel(logging.DEBUG)
