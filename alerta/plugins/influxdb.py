@@ -1,3 +1,4 @@
+import numbers
 import os
 import json
 import requests
@@ -20,7 +21,9 @@ class InfluxDBWrite(PluginBase):
 
     def post_receive(self, alert):
         url = INFLUXDB_URL + '/write?db=telegraf&rp=default'
-        data = "errors_history,environment={},event={},resource={},severity={} value={} ".format(alert.environment,alert.event,alert.resource,alert.severity,alert.value)
+        data = "errors_history,environment={},event={},resource={},severity={}".format(alert.environment,alert.event,alert.resource,alert.severity).replace(" ","")
+        if isinstance(alert.value,float) or isinstance(alert.value,numbers.Integral):
+            data = "{} value={}".format(data,alert.value)
         LOG.debug('InfluxDB data: %s', data)
         try:
             response = requests.post(url=url, data=data)
