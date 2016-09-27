@@ -25,6 +25,7 @@ safe: 表示是否是保密消息，0表示否，1表示是，默认0
 '''
 """
 import json
+import numbers
 import os
 import re
 import requests
@@ -148,7 +149,10 @@ class WeChat(PluginBase):
                 if alert.severity == severity_code.CRITICAL:
                     text="{}!{}:{} {}".format(alert.severity,",".join(alert.service),alert.resource,alert.event)
                     if alert.value:
-                        text="{} is {}".format(text,alert.value)
+                        value = alert.value
+                        if isinstance(value, float):
+                            value = "{0:0.0f}".format(value)
+                        text="{} is {}".format(text,value)
                     if alert.last_receive_time:
                         text="{} at {}".format(text,alert.receive_time.replace(tzinfo=tz.tzutc()).astimezone( tz.gettz('Asia/Shanghai')).strftime("%Y/%m/%d %H:%M"))
                     LOG.info("message:{}".format(text))
