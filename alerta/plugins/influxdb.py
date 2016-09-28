@@ -24,7 +24,7 @@ class InfluxDBWrite(PluginBase):
         data = "alerts_history,environment={},event={},resource={},severity={}".format(alert.environment,alert.event,alert.resource,alert.severity).replace(" ","\ ")
         data = "{} alert_id=\"{}\"".format(data,alert.id)
         try:
-            float(data)
+            float(alert.value)
             data = "{},value={}".format(data,alert.value)
         except Exception as e:
             pass
