@@ -148,6 +148,10 @@ class WeChat(PluginBase):
                     text="{}!{}:{} {}".format(alert.severity,",".join(alert.service),alert.resource,alert.event)
                     if alert.value:
                         value = alert.value
+                        try:
+                            value = float(value)
+                        except Exception as e:
+                            pass
                         if isinstance(value, float):
                             value = "{0:0.0f}".format(value)
                         text="{} is {}".format(text,value)

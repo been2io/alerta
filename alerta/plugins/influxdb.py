@@ -21,9 +21,13 @@ class InfluxDBWrite(PluginBase):
 
     def post_receive(self, alert):
         url = INFLUXDB_URL + '/write?db=telegraf&rp=default'
-        data = "errors_history,environment={},event={},resource={},severity={}".format(alert.environment,alert.event,alert.resource,alert.severity).replace(" ","")
-        if isinstance(alert.value,float) or isinstance(alert.value,numbers.Integral):
-            data = "{} value={}".format(data,alert.value)
+        data = "alerts_history,environment={},event={},resource={},severity={}".format(alert.environment,alert.event,alert.resource,alert.severity).replace(" ","\ ")
+        data = "{} alert_id=\"{}\"".format(data,alert.id)
+        try:
+            float(data)
+            data = "{},value={}".format(data,alert.value)
+        except Exception as e:
+            pass
         LOG.debug('InfluxDB data: %s', data)
         try:
             response = requests.post(url=url, data=data)
