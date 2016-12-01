@@ -328,7 +328,21 @@ class Mongo(object):
                 "lastReceiveTime": now
             },
             '$addToSet': {"tags": {'$each': alert.tags}},
-            '$inc': {"duplicateCount": 1}
+            '$inc': {"duplicateCount": 1},
+            '$push': {
+                "history": {
+                    '$each': [{
+                        "event": alert.event,
+                        "severity": alert.severity,
+                        "value": alert.value,
+                        "type": "external",
+                        "text": alert.text,
+                        "id": alert.id,
+                        "updateTime": now
+                    }],
+                    '$slice': -abs(app.config['HISTORY_LIMIT'])
+                }
+            }
         }
 
         # only update those attributes that are specifically defined
@@ -349,6 +363,7 @@ class Mongo(object):
                     '$slice': -abs(app.config['HISTORY_LIMIT'])
                 }
             }
+
 
         LOG.debug('Update duplicate alert in database: %s', update)
         response = self._db.alerts.find_one_and_update(
@@ -772,21 +787,25 @@ class Mongo(object):
         return counts
 
     def get_topn_count(self, query=None, group=None, limit=10):
-
         if not group:
             group = "event"  # group by event is nothing specified
 
+        groups = group.split(',')
+        group = {}
+        for g in groups:
+            group[g] = "$%s" % g
         pipeline = [
             {'$match': query},
             {'$unwind': '$service'},
             {
                 '$group': {
-                    "_id": "$%s" % group,
+                    "_id": group,
+                    "services": {'$addToSet': "$service"},
+                    "event": {'$addToSet': "$event"},
+                    "resources": {'$addToSet': {"id": "$_id", "resource": "$resource"}},
                     "count": {'$sum': 1},
                     "duplicateCount": {'$sum': "$duplicateCount"},
                     "environments": {'$addToSet': "$environment"},
-                    "services": {'$addToSet': "$service"},
-                    "resources": {'$addToSet': {"id": "$_id", "resource": "$resource"}}
                 }
             },
             {'$sort': {"count": -1, "duplicateCount": -1}},
@@ -798,31 +817,29 @@ class Mongo(object):
         top = list()
         for response in responses:
             top.append(
-                {
-                    "%s" % group: response['_id'],
-                    "environments": response['environments'],
-                    "services": response['services'],
-                    "resources": response['resources'],
-                    "count": response['count'],
-                    "duplicateCount": response['duplicateCount']
-                }
+               response
             )
         return top
 
-    def get_topn_flapping(self, query=None, group=None, limit=10):
-
+    def get_topn_flapping(self, query=None, group=None, limit=100):
+        groups = group.split(',')
+        group = {}
+        for g in groups:
+            group[g] = "$%s" % g
         if not group:
             group = "event"
-
+        q ={"history.updateTime":query['lastReceiveTime'],"history.type":"external"}
         pipeline = [
             {'$match': query},
             {'$unwind': '$service'},
             {'$unwind': '$history'},
+            {'$match': q},
             {
                 '$group': {
-                    "_id": "$%s" % group,
+                    "_id": group,
                     "count": {'$sum': 1},
                     "duplicateCount": {'$max': "$duplicateCount"},
+                    "event": {'$addToSet': "$event"},
                     "environments": {'$addToSet': "$environment"},
                     "services": {'$addToSet': "$service"},
                     "resources": {'$addToSet': {"id": "$_id", "resource": "$resource"}}
@@ -837,14 +854,7 @@ class Mongo(object):
         top = list()
         for response in responses:
             top.append(
-                {
-                    "%s" % group: response['_id'],
-                    "environments": response['environments'],
-                    "services": response['services'],
-                    "resources": response['resources'],
-                    "count": response['count'],
-                    "duplicateCount": response['duplicateCount']
-                }
+                response
             )
         return top
 

@@ -517,7 +517,7 @@ def get_top10_flapping():
         return jsonify(status="error", message=str(e)), 400
 
     try:
-        top10 = db.get_topn_flapping(query=query, group=group, limit=10)
+        top10 = db.get_topn_flapping(query=query, group=group, limit=100)
     except Exception as e:
         return jsonify(status="error", message=str(e)), 500
 

@@ -106,11 +106,13 @@ def parse_fields(r):
     else:
         to_date = query_time
         to_date = to_date.replace(tzinfo=pytz.utc)
-
+    time_filter = 'lastReceiveTime'
     if from_date and to_date:
-        query['lastReceiveTime'] = {'$gt': from_date, '$lte': to_date}
+        query[time_filter] = {'$gt': from_date, '$lte': to_date}
     elif to_date:
-        query['lastReceiveTime'] = {'$lte': to_date}
+        query[time_filter] = {'$lte': to_date}
+    elif from_date:
+        query[time_filter] = {'$gt': from_date}
 
     if params.get('duplicateCount', None):
         query['duplicateCount'] = int(params.get('duplicateCount'))
