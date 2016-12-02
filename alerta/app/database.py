@@ -828,7 +828,10 @@ class Mongo(object):
             group[g] = "$%s" % g
         if not group:
             group = "event"
-        q ={"history.updateTime":query['lastReceiveTime'],"history.type":"external"}
+        q ={"history.updateTime":query['lastReceiveTime'],"history.type":"external","history.severity": {"$exists":True}}
+        if 'severity' in query:
+            q['history.severity'].update( query['severity'])
+            del query['severity']
         pipeline = [
             {'$match': query},
             {'$unwind': '$service'},

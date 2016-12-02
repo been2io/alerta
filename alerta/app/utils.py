@@ -148,7 +148,8 @@ def parse_fields(r):
     else:
         limit = app.config['QUERY_LIMIT']
     limit = int(limit)
-
+    if 'severity' in params:
+        query['severity']={'$eq':params.get('severity')}
     ids = params.getlist('id')
     if len(ids) == 1:
         query['$or'] = [{'_id': {'$regex': '^' + ids[0]}}, {'lastReceiveId': {'$regex': '^' + ids[0]}}]

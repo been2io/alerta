@@ -81,8 +81,10 @@ class AlertTestCase(unittest.TestCase):
 
         # create alert
         response = self.app.post('/alert', data=json.dumps(self.major_alert), headers=self.headers)
+        print response.data.decode('utf-8')
         self.assertEqual(response.status_code, 201)
         data = json.loads(response.data.decode('utf-8'))
+        print data
         self.assertEqual(data['alert']['resource'], self.resource)
         self.assertEqual(data['alert']['status'], 'open')
         self.assertEqual(data['alert']['duplicateCount'], 0)
@@ -99,68 +101,7 @@ class AlertTestCase(unittest.TestCase):
         self.assertEqual(data['alert']['previousSeverity'], 'unknown')
         self.assertEqual(data['alert']['trendIndication'], 'moreSevere')
 
-        # correlate alert (same event, diff sev)
-        response = self.app.post('/alert', data=json.dumps(self.critical_alert), headers=self.headers)
-        self.assertEqual(response.status_code, 201)
-        data = json.loads(response.data.decode('utf-8'))
-        self.assertIn(alert_id, data['alert']['id'])
-        self.assertEqual(data['alert']['status'], 'open')
-        self.assertEqual(data['alert']['duplicateCount'], 0)
-        self.assertEqual(data['alert']['previousSeverity'], self.major_alert['severity'])
-        self.assertEqual(data['alert']['trendIndication'], 'moreSevere')
 
-
-        # de-duplicate
-        response = self.app.post('/alert', data=json.dumps(self.critical_alert), headers=self.headers)
-        self.assertEqual(response.status_code, 201)
-        data = json.loads(response.data.decode('utf-8'))
-        self.assertIn(alert_id, data['alert']['id'])
-        self.assertEqual(data['alert']['duplicateCount'], 1)
-        self.assertEqual(data['alert']['trendIndication'], 'moreSevere')
-
-        # correlate alert (diff event, same sev)
-        response = self.app.post('/alert', data=json.dumps(self.fatal_alert), headers=self.headers)
-        self.assertEqual(response.status_code, 201)
-        data = json.loads(response.data.decode('utf-8'))
-        self.assertIn(alert_id, data['alert']['id'])
-        self.assertEqual(data['alert']['duplicateCount'], 0)
-        self.assertEqual(data['alert']['previousSeverity'], self.critical_alert['severity'])
-        self.assertEqual(data['alert']['trendIndication'], 'noChange')
-
-
-        # correlate alert (diff event, diff sev)
-        response = self.app.post('/alert', data=json.dumps(self.major_alert), headers=self.headers)
-        self.assertEqual(response.status_code, 201)
-        data = json.loads(response.data.decode('utf-8'))
-        self.assertIn(alert_id, data['alert']['id'])
-        self.assertEqual(data['alert']['duplicateCount'], 0)
-        self.assertEqual(data['alert']['previousSeverity'], self.fatal_alert['severity'])
-        self.assertEqual(data['alert']['trendIndication'], 'lessSevere')
-
-        # correlate alert (diff event, diff sev)
-        response = self.app.post('/alert', data=json.dumps(self.normal_alert), headers=self.headers)
-        self.assertEqual(response.status_code, 201)
-        data = json.loads(response.data.decode('utf-8'))
-        self.assertIn(alert_id, data['alert']['id'])
-        self.assertEqual(data['alert']['status'], 'closed')
-        self.assertEqual(data['alert']['duplicateCount'], 0)
-        self.assertEqual(data['alert']['previousSeverity'], self.major_alert['severity'])
-        self.assertEqual(data['alert']['trendIndication'], 'lessSevere')
-
-        # get alert
-        response = self.app.get('/alert/' + alert_id)
-        self.assertEqual(response.status_code, 200)
-        data = json.loads(response.data.decode('utf-8'))
-        self.assertIn(alert_id, data['alert']['id'])
-
-        # delete alert
-        response = self.app.delete('/alert/' + alert_id)
-        self.assertEqual(response.status_code, 200)
-
-    def test_alert_not_found(self):
-
-        response = self.app.get('/alert/doesnotexist')
-        self.assertEqual(response.status_code, 404)
 
     def test_get_alerts(self):
 
