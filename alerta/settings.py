@@ -14,7 +14,7 @@ LOG_FILE = None
 SECRET_KEY = 'changeme'
 
 QUERY_LIMIT = 10000  # maximum number of alerts returned by a single query
-HISTORY_LIMIT = 100  # cap the number of alert history entries
+HISTORY_LIMIT = 1000  # cap the number of alert history entries
 
 # MongoDB
 MONGO_HOST = 'localhost'
