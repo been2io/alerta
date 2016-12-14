@@ -16,7 +16,7 @@ from email import utils
 
 DEFAULT_SEVERITY = "normal"  # "normal", "cleared " or "ok"
 DEFAULT_TIMEOUT = 86400
-
+from severity_code import translate_severity,name_to_code
 prog = os.path.basename(sys.argv[0])
 
 class DateEncoder(json.JSONEncoder):
@@ -44,7 +44,7 @@ class Alert(object):
         self.resource = resource
         self.event = event
         self.environment = kwargs.get('environment', None) or ""
-        self.severity = kwargs.get('severity', None) or DEFAULT_SEVERITY
+        self.severity = translate_severity(kwargs.get('severity', None) or DEFAULT_SEVERITY)
         self.correlate = kwargs.get('correlate', None) or list()
         if self.correlate and event not in self.correlate:
             self.correlate.append(event)
@@ -62,7 +62,7 @@ class Alert(object):
         self.timeout = kwargs.get('timeout', DEFAULT_TIMEOUT)
         self.raw_data = kwargs.get('raw_data', kwargs.get('rawData', None)) or ""
         self.customer = kwargs.get('customer', None)
-
+        self.severity_code = name_to_code(self.severity)
     def get_id(self, short=False):
 
         if short:
@@ -99,7 +99,8 @@ class Alert(object):
             'createTime': self.get_date('create_time', 'iso'),
             'timeout': self.timeout,
             'rawData': self.raw_data,
-            'customer': self.customer
+            'customer': self.customer,
+            'severityCode':self.severity_code
         }
 
     def get_date(self, attr, fmt='iso', timezone='Europe/London'):
@@ -196,7 +197,7 @@ class AlertDocument(object):
         self.resource = resource
         self.event = event
         self.environment = environment or ""
-        self.severity = severity
+        self.severity = translate_severity(severity)
         self.correlate = correlate or list()
         self.status = status
         self.service = service or list()
@@ -214,13 +215,13 @@ class AlertDocument(object):
 
         self.duplicate_count = duplicate_count
         self.repeat = repeat
-        self.previous_severity = previous_severity
+        self.previous_severity = translate_severity(previous_severity)
         self.trend_indication = trend_indication
         self.receive_time = receive_time
         self.last_receive_id = last_receive_id
         self.last_receive_time = last_receive_time
         self.history = history
-
+        self.severity_code = name_to_code(self.severity)
     def get_id(self, short=False):
 
         if short:
@@ -264,7 +265,8 @@ class AlertDocument(object):
             'trendIndication': self.trend_indication,
             'receiveTime': self.get_date('receive_time', 'iso'),
             'lastReceiveId': self.last_receive_id,
-            'lastReceiveTime': self.get_date('last_receive_time', 'iso')
+            'lastReceiveTime': self.get_date('last_receive_time', 'iso'),
+            'severityCode':self.severity_code
         }
         if history:
             body['history'] = self.history

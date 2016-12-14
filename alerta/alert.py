@@ -1,4 +1,4 @@
-
+"""
 import os
 import sys
 import platform
@@ -6,7 +6,7 @@ import time
 import datetime
 import pytz
 import json
-
+from app.severity_code import translate_severity
 from uuid import uuid4
 from email import utils
 
@@ -34,7 +34,7 @@ class Alert(object):
         self.resource = resource
         self.event = event
         self.environment = kwargs.get('environment', None) or ""
-        self.severity = kwargs.get('severity', None) or DEFAULT_SEVERITY
+        self.severity = translate_severity(kwargs.get('severity', None) or DEFAULT_SEVERITY)
         self.correlate = kwargs.get('correlate', None) or list()
         if self.correlate and event not in self.correlate:
             self.correlate.append(event)
@@ -333,5 +333,5 @@ class AlertDocument(object):
             receive_time=alert.get('receiveTime', None),
             last_receive_id=alert.get('lastReceiveId', None),
             last_receive_time=alert.get('lastReceiveTime', None),
-            history=alert.get('history', None)
-        )
+            history=alert.get('history', None))
+"""

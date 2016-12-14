@@ -14,31 +14,56 @@ http://www.itu.int/rec/T-REC-X.736-199201-I
            Indeterminate               5 (Notice)
            Cleared                     5 (Notice)
 """
-from alerta.app import app
 from alerta.app import status_code
 
 # NOTE: The display text in single quotes can be changed depending on preference.
 # eg. CRITICAL = 'critical' or CRITICAL = 'CRITICAL'
+ZBX_SEVERITY_MAP = {
+    'critical':'disaster',
+    'major': 'high',
+    'minor': 'average',
+    'warning': 'warning',
+    'informational': 'information',
+    'indeterminate': 'notClassified',
+}
 
-CRITICAL = 'critical'
-MAJOR = 'major'
-MINOR = 'minor'
-WARNING = 'warning'
-INDETERMINATE = 'indeterminate'
-CLEARED = 'cleared'
-NORMAL = 'normal'
-OK = 'ok'
-INFORM = 'informational'
-DEBUG = 'debug'
-AUTH = 'security'
-UNKNOWN = 'unknown'
-NOT_VALID = 'notValid'
+
+def translate_severity(severity):
+    return ZBX_SEVERITY_MAP.get(severity, severity)
+
+
+CRITICAL = translate_severity('critical')
+MAJOR = translate_severity('major')
+MINOR = translate_severity('minor')
+WARNING = translate_severity('warning')
+INDETERMINATE = translate_severity('indeterminate')
+CLEARED = translate_severity('cleared')
+NORMAL = translate_severity('normal')
+OK = translate_severity('ok')
+INFORM = translate_severity('informational')
+DEBUG = translate_severity('debug')
+AUTH = translate_severity('security')
+UNKNOWN = translate_severity('unknown')
+NOT_VALID = translate_severity('notValid')
 
 MORE_SEVERE = 'moreSevere'
 LESS_SEVERE = 'lessSevere'
 NO_CHANGE = 'noChange'
 
-SEVERITY_MAP = app.config['SEVERITY_MAP']
+SEVERITY_MAP = {
+    CRITICAL: 1,
+    MAJOR: 2,
+    MINOR: 3,
+    WARNING: 4,
+    INFORM: 5,
+    INDETERMINATE: 6,
+    CLEARED: 7,
+    NORMAL: 7,
+    OK: 7,
+    DEBUG: 8,
+    AUTH: 9,
+    UNKNOWN: 10  # default
+}
 
 _ABBREV_SEVERITY_MAP = {
     CRITICAL: 'Crit',
